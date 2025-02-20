@@ -1,0 +1,13 @@
+pandas
+streamlit
+gspread
+oauth2client
+toml
+altair
+streamlit_authenticator
+numpy
+scipy
+navigation
+plotly
+matplotlib
+seaborn
