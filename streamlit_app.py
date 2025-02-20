@@ -63,33 +63,6 @@ authenticator.login('main')
 if st.session_state.get('authentication_status'):
     st.session_state['logged_in'] = True  # Set session state for logged in
     st.success("Logged in successfully!")
-    
-    username = st.session_state['username']
-
-    # Retrieve the user's email and name from the credentials
-    user_email = credentials['credentials']['usernames'][username]['email']
-    user_name = credentials['credentials']['usernames'][username]['name']
-
-        #ACCESS LOG
-    def log_user_access(email):
-        access_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        
-        # Setup the Google Sheets client
-        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["sheets"], scope)
-        client = gspread.authorize(creds)
-        
-        try:
-            spreadsheet_id = "1qUZaGkwv7Shx3gDnSQNdYFOjuqmVtRUEgKzdrBrsovM"  # Replace with your actual spreadsheet ID
-            sheet = client.open_by_key(spreadsheet_id).sheet1  # Use open_by_key instead of open
-            sheet.append_row([email, access_time])
-        except gspread.SpreadsheetNotFound:
-            st.write("Spreadsheet not found. Please check the ID and permissions.")
-        except Exception as e:
-            st.write(f"An error occurred: {e}")
-    # Get the user's email from Streamlit's experimental_user function
-    log_user_access(user_email)
-
 elif st.session_state.get('authentication_status') is False:
     st.error("Incorrect username or password.")
 elif st.session_state.get('authentication_status') is None:
