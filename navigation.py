@@ -17,13 +17,12 @@ def get_current_page_name():
 
 def make_sidebar():
     with st.sidebar:
-        st.title("🧙‍♂️ Discovery Test Result 2024 - 2025")
+        st.title("Sidebar")
         st.write("")
         st.write("")
 
         if st.session_state.get("logged_in", False):
             st.page_link("pages/page1.py", label="Test Result", icon="🎭")
-            st.page_link("pages/page2.py", label="Read Me", icon="📜")
 
             st.write("")
             st.write("")

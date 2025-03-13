@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 # Fetch the credentials from the data source
-df_creds, df_discovery = finalize_data()
+df_creds, df_links, df_discovery = finalize_data()
 
 # Process `df_creds` to extract credentials in the required format
 def extract_credentials(df_creds):
@@ -54,7 +54,7 @@ if st.session_state.get("logged_in", False):
     make_sidebar()
 
 # Display the title of the app
-st.title("Discovery Test Result")
+st.title("🧙‍♂️ Discovery Test Result")
 
 # Display the login form
 authenticator.login('main')
@@ -62,7 +62,7 @@ authenticator.login('main')
 # Handle authentication status
 if st.session_state.get('authentication_status'):
     st.session_state['logged_in'] = True  # Set session state for logged in
-    st.success("Logged in successfully!")
+    st.success("Logged in successfully. Go to the Test Result in the sidebar.")
 elif st.session_state.get('authentication_status') is False:
     st.error("Incorrect username or password.")
 elif st.session_state.get('authentication_status') is None:

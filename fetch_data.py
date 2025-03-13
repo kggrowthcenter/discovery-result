@@ -12,11 +12,21 @@ def fetch_data_creds():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds = ServiceAccountCredentials.from_json_keyfile_dict(secret_info, scope)
     client = gspread.authorize(creds)
+    
+    # Open the spreadsheet
     spreadsheet = client.open('Discovery Test Result - Dashboard Credentials')
-    sheet = spreadsheet.sheet1
-    data = sheet.get_all_records()
-    df_creds = pd.DataFrame(data)
-    return df_creds
+    
+    # Fetch Sheet1 (Main Data)
+    sheet1 = spreadsheet.sheet1
+    data1 = sheet1.get_all_records()
+    df_creds = pd.DataFrame(data1)
+
+    # Fetch Sheet2 (Typology Report Links)
+    sheet2 = spreadsheet.get_worksheet(1)  # Index 1 refers to the second sheet
+    data2 = sheet2.get_all_records()
+    df_links = pd.DataFrame(data2)
+
+    return df_creds, df_links  # Return both DataFrames
 
 @st.cache_resource(ttl=43200)
 def fetch_data_discovery():
