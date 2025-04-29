@@ -28,7 +28,7 @@ def fetch_data_creds():
 
     return df_creds, df_links  # Return both DataFrames
 
-@st.cache_resource(ttl=43200)
+@st.cache_resource(ttl=1800)
 def fetch_data_discovery():
     try:
         connection_kwargs = {
