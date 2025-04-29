@@ -28,6 +28,6 @@ JOIN user_bundle_result_user_result ubrur on
 JOIN user_bundle_results ubr on
 	ubrur.user_bundle_result_id = ubr.id
 WHERE
-	ubr.created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+	ubr.created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
 ORDER BY
 	ubr.created_at DESC, id, bundle_name, total_score DESC
