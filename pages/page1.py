@@ -7,7 +7,7 @@ import re
 from datetime import datetime
 import io
 import xlsxwriter
-
+from datetime import timedelta
 
 st.set_page_config(
     page_title='Test Result',
@@ -47,6 +47,12 @@ date_columns = [col for col in df_final.columns if col.endswith("_date") and col
 min_date = pd.to_datetime(df_final[date_columns].min().min())
 max_date = pd.to_datetime(df_final[date_columns].max().max())
 
+# Initialize session state for date filters if not already set
+if 'start_date' not in st.session_state:
+    today = datetime.today()
+    st.session_state.start_date = today.replace(day=1)  # Default to the start of the current month
+    st.session_state.end_date = min(today.replace(day=1) + pd.DateOffset(months=1) - pd.Timedelta(days=1), datetime.today())
+
 # --- UI for date range and button ---
 st.subheader("📆 Date Range")
 
@@ -54,25 +60,54 @@ st.subheader("📆 Date Range")
 start_date_default = min_date
 end_date_default = max_date
 
-if st.button("Bulan Ini"):
-    today = datetime.today()
-    start_date_default = pd.to_datetime(today.replace(day=1))
-    # Calculate end of month
-    last_day_of_month = (today.replace(day=1) + pd.DateOffset(months=1)) - pd.Timedelta(days=1)
-    # Clamp to available max date
-    end_date_default = min(pd.to_datetime(last_day_of_month), max_date)
+col1, col2, col3, col4 = st.columns(4)
 
-# Date input UI
+with col1:
+    if st.button("Bulan Ini"):
+        today = datetime.today()
+        st.session_state.start_date = pd.to_datetime(today.replace(day=1))
+        last_day_of_month = (today.replace(day=1) + pd.DateOffset(months=1)) - pd.Timedelta(days=1)
+        st.session_state.end_date = min(pd.to_datetime(last_day_of_month), datetime.today())
+
+with col2:
+    if st.button("Minggu Ini"):
+        today = datetime.today()
+        start_of_week = today - timedelta(days=today.weekday())  # Senin
+        end_of_week = start_of_week + timedelta(days=6)  # Minggu
+        st.session_state.start_date = pd.to_datetime(start_of_week)
+        st.session_state.end_date = min(pd.to_datetime(end_of_week), datetime.today())
+
+with col3:
+    if st.button("Minggu Kemarin"):
+        today = datetime.today()
+        start_of_this_week = today - timedelta(days=today.weekday())
+        start_of_last_week = start_of_this_week - timedelta(days=7)
+        end_of_last_week = start_of_last_week + timedelta(days=6)
+        st.session_state.start_date = pd.to_datetime(start_of_last_week)
+        st.session_state.end_date = min(pd.to_datetime(end_of_last_week), datetime.today())
+
+with col4:
+    if st.button("6 Bulan"):
+        # For the last 6 months, we can simply use min_date and max_date from the data
+        six_months_ago = max_date - pd.DateOffset(months=6)
+        st.session_state.start_date = six_months_ago
+        st.session_state.end_date = max_date
+
+# Date range input using session state
 start_date, end_date = st.date_input(
     "Select date range:",
-    value=(start_date_default, end_date_default),
-    min_value=min_date,
-    max_value=max_date
+    value=(st.session_state.start_date, st.session_state.end_date),
+    min_value=datetime(2020, 1, 1),  # Assuming data starts from 2020
+    max_value=datetime.today()
 )
 
 # Convert to datetime
 start_date = pd.to_datetime(start_date)
 end_date = pd.to_datetime(end_date)
+
+# Save the selected date range back to session state
+st.session_state.start_date = pd.to_datetime(start_date)
+st.session_state.end_date = pd.to_datetime(end_date)
 
 # Process each test block separately
 df_filtered = df_final.copy()
@@ -272,7 +307,7 @@ def get_table_download_link(df, filename="search_template.csv"):
 
 st.subheader("🔍 Search Options")
 
-search_query = st.text_input("Search by Voucher, Email, Name, or Phone (optional)", "")
+search_query = st.text_input("Search by Voucher, Email, Name, or Phone (you can enter multiple, separated by commas)", "")
 
 with st.expander("Mencari dengan Daftar Peserta"):
     uploaded_file = st.file_uploader("Upload a file (.csv or .xlsx) with a column: email, name, or phone", type=["csv", "xlsx"])
@@ -300,7 +335,8 @@ if uploaded_file:
 
 # Add single input to the set
 if search_query:
-    search_values.add(search_query.strip().lower())
+    queries = [q.strip().lower() for q in search_query.split(",") if q.strip()]
+    search_values.update(queries)
 
 # Filter if any search input exists
 if search_values:
