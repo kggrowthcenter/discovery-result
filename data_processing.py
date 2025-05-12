@@ -16,7 +16,7 @@ def process_astaka(df):
     df_astaka = df_astaka[df_astaka["rank"] <= 6]
 
     # Pivot to have columns like "Astaka_Top 1_Typology", "Astaka_Top 2_Score"
-    df_astaka_pivot = df_astaka.pivot(index=["id", "email", "name", "phone", "register_date"],
+    df_astaka_pivot = df_astaka.pivot(index=["voucher", "id", "email", "name", "phone", "register_date"],
                                       columns="rank",
                                       values=["typology", "total_score"]).reset_index()
 
@@ -27,11 +27,11 @@ def process_astaka(df):
     ]
 
     # Process taken date separately (only latest one)
-    df_astaka_date = df_astaka.groupby(["id", "email", "name", "phone", "register_date"])["taken_date"].max().reset_index()
+    df_astaka_date = df_astaka.groupby(["voucher", "id", "email", "name", "phone", "register_date"])["taken_date"].max().reset_index()
     df_astaka_date.rename(columns={"taken_date": "Astaka_date"}, inplace=True)
 
     # Merge both typology + score and latest taken_date
-    df_astaka_final = df_astaka_pivot.merge(df_astaka_date, on=["id", "email", "name", "phone", "register_date"], how="left")
+    df_astaka_final = df_astaka_pivot.merge(df_astaka_date, on=["voucher", "id", "email", "name", "phone", "register_date"], how="left")
 
     return df_astaka_final
 
@@ -49,7 +49,7 @@ def process_genuine(df):
     df_genuine = df_genuine[df_genuine["rank"] <= 9]
 
     # Pivot to create columns like "Genuine_Top 1_Typology", "Genuine_Top 2_Score"
-    df_genuine_pivot = df_genuine.pivot(index=["id", "email", "name", "phone", "register_date"],
+    df_genuine_pivot = df_genuine.pivot(index=["voucher", "id", "email", "name", "phone", "register_date"],
                                         columns="rank",
                                         values=["typology", "total_score"]).reset_index()
 
@@ -60,11 +60,11 @@ def process_genuine(df):
     ]
 
     # Process taken date separately (only latest one)
-    df_genuine_date = df_genuine.groupby(["id", "email", "name", "phone", "register_date"])["taken_date"].max().reset_index()
+    df_genuine_date = df_genuine.groupby(["voucher", "id", "email", "name", "phone", "register_date"])["taken_date"].max().reset_index()
     df_genuine_date.rename(columns={"taken_date": "Genuine_date"}, inplace=True)
 
     # Merge both typology + score and latest taken_date
-    df_genuine_final = df_genuine_pivot.merge(df_genuine_date, on=["id", "email", "name", "phone", "register_date"], how="left")
+    df_genuine_final = df_genuine_pivot.merge(df_genuine_date, on=["voucher", "id", "email", "name", "phone", "register_date"], how="left")
 
     return df_genuine_final
 
@@ -80,7 +80,7 @@ def process_others(df):
 
         # Pivot final_result separately
         df_final_result = df_bundle.pivot_table(
-            index=["id", "email", "name", "phone", "register_date"],
+            index=["voucher", "id", "email", "name", "phone", "register_date"],
             values="final_result",
             aggfunc="first"
         ).reset_index()
@@ -88,7 +88,7 @@ def process_others(df):
 
         # Pivot typology with test_name for the current bundle
         df_typology = df_bundle.pivot_table(
-            index=["id", "email", "name", "phone", "register_date"],
+            index=["voucher", "id", "email", "name", "phone", "register_date"],
             columns=["test_name"],
             values="typology",
             aggfunc="first"
@@ -96,7 +96,7 @@ def process_others(df):
 
         # Pivot taken_date for the current bundle (without test_name)
         df_taken_date = df_bundle.pivot_table(
-            index=["id", "email", "name", "phone", "register_date"],
+            index=["voucher", "id", "email", "name", "phone", "register_date"],
             values="taken_date",
             aggfunc="first"
         ).reset_index()
@@ -107,8 +107,8 @@ def process_others(df):
         df_typology = df_typology.reset_index()
 
         # Merge final_result, taken_date, and typology
-        df_bundle_pivot = df_final_result.merge(df_taken_date, on=["id", "email", "name", "phone", "register_date"], how="left")
-        df_bundle_pivot = df_bundle_pivot.merge(df_typology, on=["id", "email", "name", "phone", "register_date"], how="left")
+        df_bundle_pivot = df_final_result.merge(df_taken_date, on=["voucher", "id", "email", "name", "phone", "register_date"], how="left")
+        df_bundle_pivot = df_bundle_pivot.merge(df_typology, on=["voucher", "id", "email", "name", "phone", "register_date"], how="left")
 
         df_list.append(df_bundle_pivot)
 
@@ -116,7 +116,7 @@ def process_others(df):
     if df_list:
         df_final = df_list[0]
         for df_bundle_pivot in df_list[1:]:
-            df_final = df_final.merge(df_bundle_pivot, on=["id", "email", "name", "phone", "register_date"], how="outer")
+            df_final = df_final.merge(df_bundle_pivot, on=["voucher", "id", "email", "name", "phone", "register_date"], how="outer")
     else:
         df_final = pd.DataFrame()  # Handle empty case
 
@@ -137,12 +137,12 @@ def finalize_data():
     df_genuine = process_genuine(df_discovery)
 
     # Start merging with df_others as the base
-    df_final = df_others.merge(df_astaka, on=["id", "email", "name", "phone", "register_date"], how="left")
-    df_final = df_final.merge(df_genuine, on=["id", "email", "name", "phone", "register_date"], how="left")
+    df_final = df_others.merge(df_astaka, on=["voucher", "id", "email", "name", "phone", "register_date"], how="left")
+    df_final = df_final.merge(df_genuine, on=["voucher", "id", "email", "name", "phone", "register_date"], how="left")
 
     # Define the expected column order
     column_order = [
-        "id", "email", "name", "phone", "register_date",
+        "voucher", "id", "email", "name", "phone", "register_date",
         "GI_date", "GI_overall", "GI_Creativity Style", "GI_Curiosity", "GI_Grit", "GI_Humility",
         "GI_Meaning Making", "GI_Mindset", "GI_Purpose in Life",
         "LEAN_date", "LEAN_overall", "LEAN_Cognitive Flexibility", "LEAN_Intellectual Curiosity", "LEAN_Open-Mindedness",

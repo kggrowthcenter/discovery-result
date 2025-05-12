@@ -1,4 +1,5 @@
- SELECT u.id,
+ SELECT v.code AS 'voucher',
+ 		u.id,
  		u.email,
  		u.name,
  		u.phone,
@@ -27,6 +28,10 @@ JOIN user_bundle_result_user_result ubrur on
 	ur.id = ubrur.user_result_id
 JOIN user_bundle_results ubr on
 	ubrur.user_bundle_result_id = ubr.id
+LEFT JOIN user_vouchers uv ON
+	uv.user_id = u.id 
+LEFT JOIN vouchers v ON
+	uv.voucher_id = v.id 
 WHERE
 	ubr.created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
 ORDER BY
