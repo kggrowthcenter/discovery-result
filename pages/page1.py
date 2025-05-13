@@ -101,9 +101,9 @@ start_date, end_date = st.date_input(
     max_value=datetime.today()
 )
 
-# Convert to datetime
-start_date = pd.to_datetime(start_date)
-end_date = pd.to_datetime(end_date)
+# Convert to datetime and normalize to include full-day range
+start_date = pd.to_datetime(start_date).normalize()  # sets time to 00:00:00
+end_date = pd.to_datetime(end_date).normalize() + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)  # sets time to 23:59:59
 
 # Save the selected date range back to session state
 st.session_state.start_date = pd.to_datetime(start_date)
